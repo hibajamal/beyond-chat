@@ -4,6 +4,7 @@ from dlt.sources.rest_api import rest_api_source
 from dlt.sources.helpers.rest_client.paginators import OffsetPaginator
 import requests
 
+
 def extract_id(record):
     print(record)
     record["id"] = record["url"].split("/")[-2]

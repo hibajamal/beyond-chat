@@ -1,57 +1,86 @@
 version: 2
 
 models:
-  - name: stg_abilities
+  - name: stg_pokemons_abilities
     description: >
-      Staging model for Pokémon abilities. Each ability represents a passive trait a Pokémon can have,
-      such as Intimidate or Levitate. This staging model transforms and standardizes data related to
-      abilities fetched from PokeAPI.
-    columns:
-      - name: ability_id
-        description: Unique identifier for the ability, matching the PokeAPI's `id` field.
-      - name: name
-        description: English name of the ability, such as "chlorophyll" or "intimidate".
-      - name: is_main_series
-        description: Boolean flag indicating whether the ability is used in the mainline Pokémon games.
-      - name: generation_id
-        description: Foreign key linking to the generation in which this ability was introduced.
-      - name: effect
-        description: Short description of the ability's effect as presented in the game UI.
-      - name: effect_detail
-        description: Extended explanation of the ability's mechanics, often useful for semantic reasoning or tooltip expansion.
-
-  - name: stg_characteristics
-    description: >
-      Staging model for Pokémon characteristics. Characteristics are nuanced summaries of a Pokémon's highest IV stat,
-      such as “Likes to run” or “Proud of its power.” These descriptions are derived from internal stat calculations.
-    columns:
-      - name: characteristic_id
-        description: Primary key for the characteristic, typically aligning with PokeAPI’s `id`.
-      - name: highest_stat_id
-        description: Foreign key referencing the Pokémon stat with the highest IV.
-      - name: message
-        description: Human-readable string that describes the characteristic (e.g., "Strong willed", "Somewhat vain").
-      - name: possible_values
-        description: Array or mapping of characteristic values tied to specific IV ranges or stat combinations.
-
-  - name: stg_pokemon
-    description: >
-      Staging model for base Pokémon entity details. This model consolidates key identity and classification features 
-      for each Pokémon species, enabling joins with types, abilities, stats, and evolutions.
+      Staging model representing the mapping between Pokémon and their abilities.
+      Each row links a Pokémon to an ability, and includes English descriptions of the ability's effect.
     columns:
       - name: pokemon_id
-        description: Unique identifier for the Pokémon species.
+        description: >
+          Foreign key to `stg_pokemons_pokemon.pokemon_id`, representing the Pokémon who has this ability.
+        meta:
+          foreign_key:
+            table: ref('stg_pokemons_pokemon')
+            field: pokemon_id
+      - name: ability_id
+        description: >
+          Identifier for the ability.
+          Unique across all abilities.
+      - name: ability_name
+        description: >
+          Canonical name of the ability in lowercase (e.g., "chlorophyll").
+      - name: ability_effects
+        description: >
+          English-language description of what this ability does in battle or context.
+
+  - name: stg_pokemons_characteristics
+    description: >
+      Staging model for Pokémon characteristics. These are flavor descriptions determined by the highest IV stat
+      a Pokémon has. Each characteristic refers to a stat name (like "speed", "attack", etc.), and is mapped
+      to a description such as "Likes to run" or "Proud of its power".
+    columns:
+      - name: characteristic_id
+        description: Unique identifier for the characteristic.
+      - name: stat_name
+        description: >
+          Name of the stat associated with this characteristic (e.g., 'attack', 'speed').
+          Semantically links to Pokémon stats and is joinable via `stg_pokemons_pokemon`.
+      - name: move_damage_class__name
+        description: Damage class of the move associated with the stat (e.g., physical, special).
+      - name: description
+        description: Natural language description of the characteristic.
+        meta:
+          example: "Proud of its power"
+
+  - name: stg_pokemons_pokemon
+    description: >
+      Staging model for Pokémon core information, joined with stats. Each row represents
+      a single (pokemon, stat) pair, including metadata like height, weight, and base experience.
+    columns:
+      - name: pokemon_id
+        description: Unique identifier for the Pokémon.
       - name: name
-        description: Pokémon's name in English, e.g., "bulbasaur", "pikachu".
+        description: Name of the Pokémon in lowercase.
       - name: base_experience
-        description: The amount of base experience gained for defeating this Pokémon.
+        description: Base XP earned for defeating this Pokémon.
       - name: height
-        description: Height of the Pokémon in decimetres.
+        description: Height in decimetres.
       - name: weight
-        description: Weight of the Pokémon in hectograms.
+        description: Weight in hectograms.
       - name: is_default
-        description: Indicates whether this Pokémon is the default variety for its species.
-      - name: order
-        description: Ordering ID for Pokémon; used for sorting Pokémon with respect to other Pokémon.
-      - name: species_id
-        description: Foreign key to Pokémon species (for mapping to evolutions or descriptive data).
+        description: Whether this is the default variety for the species.
+      - name: species__name
+        description: Name of the species this Pokémon belongs to.
+      - name: species__url
+        description: URL of the species resource — not used for joining.
+      - name: cries__latest
+        description: Path to the latest available cry audio for the Pokémon.
+      - name: cries__legacy
+        description: Path to the legacy cry audio.
+      - name: location_area_encounters
+        description: URL for retrieving encounter information.
+      - name: _dlt_id
+        description: DLT internal unique ID.
+      - name: _dlt_load_id
+        description: DLT load ID.
+      - name: base_stat
+        description: Base value for the associated stat.
+      - name: stat__name
+        description: >
+          Name of the stat (e.g., "attack", "speed").
+          Joinable to `stg_pokemons_characteristics.stat_name`.
+        meta:
+          foreign_key:
+            table: ref('stg_pokemons_characteristics')
+            field: stat_name
