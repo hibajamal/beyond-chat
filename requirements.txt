@@ -1,3 +1,6 @@
 streamlit
 pandas
 duckdb
+sql_database
+dlt
+pymysql
