@@ -1,0 +1,217 @@
+version: 2
+
+models:
+  - name: stg_tickers
+    description: >
+      Contains metadata about stock tickers including identification numbers,
+      classification codes, and details about their associated stock exchanges.
+    columns:
+      - name: name
+        description: Returns the name of the given stock ticker.
+
+      - name: symbol
+        description: Returns the symbol of the given stock ticker. Primary key.
+
+      - name: cik
+        description: Returns the unique identifier assigned by the SEC to U.S. corporations and individuals for regulatory filings.
+
+      - name: isin
+        description: Returns the International Securities Identification Number.
+
+      - name: cusip
+        description: Returns the CUSIP number identifying financial instruments like stocks, commercial paper, and bonds.
+
+      - name: ein_employer_id
+        description: Returns the unique nine-digit number that is assigned to a business entity.
+
+      - name: lei
+        description: Returns the Legal Entity Identifier.
+
+      - name: series_id
+        description: Returns the ID of the options series in which the stock option is.
+
+      - name: item_type
+        description: The type of the stock ticker.
+
+      - name: sector
+        description: Sector in which the company holding the stock ticker operates.
+
+      - name: industry
+        description: Industry in which the company holding the stock ticker operates.
+
+      - name: sic_code
+        description: Returns the Standard Industrial Classification (SIC) code.
+
+      - name: sic_name
+        description: Returns the name associated with the SIC code.
+
+      # Nested stock_exchange fields
+      - name: stock_exchange__name
+        description: Returns the name of the stock exchange associated with the given stock ticker.
+
+      - name: stock_exchange__acronym
+        description: Returns the acronym of the stock exchange.
+
+      - name: stock_exchange__mic
+        description: Returns the MIC identification code of the stock exchange.
+
+      - name: stock_exchange__country_code
+        description: Returns the 3-letter ISO country code where the stock exchange is located.
+
+      - name: stock_exchange__city
+        description: Returns the city of the stock exchange.
+
+      - name: stock_exchange__website
+        description: Returns the website URL of the stock exchange.
+
+      - name: stock_exchange__operating_mic
+        description: Returns the operating Market Identifier Code (MIC).
+
+      - name: stock_exchange__oprt_sgmt
+        description: Indicates whether the MIC is an operating MIC or market segment MIC.
+
+      - name: stock_exchange__legal_entity_name
+        description: Returns the legal entity name of the stock exchange.
+
+      - name: stock_exchange__exchange_lei
+        description: Returns the Legal Entity Identifier of the stock exchange.
+
+      - name: stock_exchange__market_category_code
+        description: Returns the market category code of the stock exchange.
+
+      - name: stock_exchange__exchange_status
+        description: Returns the status of the stock exchange.
+
+      # Nested timestamps under date_creation
+      - name: stock_exchange_date_creation_date
+        description: Returns the creation date of the stock exchange entry.
+
+      - name: stock_exchange__date_creation__timezone_type
+        description: Returns the timezone type of the creation date.
+
+      - name: stock_exchange__date_creation__timezone
+        description: Returns the timezone of the creation date.
+
+      # Nested timestamps under date_last_update
+      - name: stock_exchange__date_last_update__date
+        description: Returns the last update date of the stock exchange entry.
+
+      - name: stock_exchange__date_last_update__timezone_type
+        description: Returns the timezone type of the last update.
+
+      - name: stock_exchange__date_last_update__timezone
+        description: Returns the timezone of the last update.
+
+      # Nested timestamps under date_last_validation
+      - name: stock_exchange__date_last_validation__date
+        description: Returns the last validation date of the stock exchange entry.
+
+      - name: stock_exchange__date_last_validation__timezone_type
+        description: Returns the timezone type of the last validation.
+
+      - name: stock_exchange__date_last_validation__timezone
+        description: Returns the timezone of the last validation.
+
+      - name: stock_exchange_comments
+        description: Returns any comments associated with the stock exchange.
+
+
+  - name: stg_historical_data
+    description: >
+      Contains historical stock data including raw and adjusted prices,
+      dividends, volumes, and exchange metadata for each trading day.
+    columns:
+      - name: date
+        description: Returns the exact UTC date/time the given data was collected in ISO-8601 format.
+
+      - name: symbol
+        description: Returns the stock ticker symbol of the current data object. Foreign key to stg_tickers.symbol.
+
+      - name: exchange
+        description: Returns the exchange MIC identification associated with the current data object.
+
+      - name: split_factor
+        description: Returns the split factor, used to adjust prices for splits or distributions.
+
+      - name: dividend
+        description: Returns the dividend distribution to shareholders.
+
+      - name: open
+        description: Returns the raw opening price of the stock.
+
+      - name: high
+        description: Returns the raw high price of the stock.
+
+      - name: low
+        description: Returns the raw low price of the stock.
+
+      - name: close
+        description: Returns the raw closing price of the stock.
+
+      - name: volume
+        description: Returns the raw trading volume of the stock.
+
+      - name: adj_open
+        description: Returns the adjusted opening price of the stock.
+
+      - name: adj_high
+        description: Returns the adjusted high price of the stock.
+
+      - name: adj_low
+        description: Returns the adjusted low price of the stock.
+
+      - name: adj_close
+        description: Returns the adjusted closing price of the stock.
+
+      - name: adj_volume
+        description: Returns the adjusted trading volume of the stock.
+
+      - name: name
+        description: Returns the full-length name of the asset.
+
+      - name: exchange_code
+        description: Returns the identifier mapping to the exchange where the asset is listed.
+
+      - name: asset_type
+        description: Returns the type of the asset (e.g., equity, ETF).
+
+      - name: price_currency
+        description: Returns the currency in which the asset is priced.
+
+  - name: stg_dividends
+    description: >
+      Contains dividend distribution information for stock symbols,
+      including payout amounts and relevant dates.
+    columns:
+      - name: date
+        description: Returns the exact UTC date/time the given data was collected in ISO-8601 format.
+
+      - name: symbol
+        description: Returns the stock ticker symbol of the current data object. Foreign key to stg_tickers.symbol.
+
+      - name: dividend
+        description: Returns the dividend for that symbol on the date.
+
+      - name: payment_date
+        description: Returns the payment date of the distribution.
+
+      - name: record_date
+        description: Returns the record date of the distribution.
+
+      - name: declaration_date
+        description: Returns the declaration date of the distribution.
+
+      - name: distr_freq
+        description: >
+          Returns the frequency associated with the distribution. Valid values include:
+          - w: Weekly
+          - bm: Bimonthly
+          - m: Monthly
+          - tm: Trimesterly
+          - q: Quarterly
+          - sa: Semiannually
+          - a: Annually
+          - ir: Irregular
+          - f: Final
+          - u: Unspecified
+          - c: Cancelled
