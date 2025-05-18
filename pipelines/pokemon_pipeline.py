@@ -1,7 +1,9 @@
 import dlt
+import pandas as pd
 from dlt.sources.rest_api import rest_api_source
 from dlt.sources.helpers.rest_client.paginators import OffsetPaginator
 import requests
+
 
 def extract_id(record):
     print(record)
@@ -75,6 +77,51 @@ def load_pokemon_abilities():
     load_info = pipeline.run(abilities_main(dataset["ability__url"]))
     print(load_info)
 
+
+def load_pokemon_stats():
+    pipeline = dlt.pipeline(
+        pipeline_name="thesis_pipeline",
+        destination="duckdb",
+        dataset_name="pokemons",
+    )
+
+    dataset = pipeline.dataset().pokemons_main__stats.df()
+
+    @dlt.resource(table_name="stats_main")
+    def stats_main(urls):
+        for url in urls:
+            print(url)
+            response = requests.get(url)
+            assert response.status_code == 200, "Invalid url: " + url
+            yield response.json()
+
+    load_info = pipeline.run(stats_main(pd.unique(dataset["stat__url"])))
+    print(load_info)
+
+
+def load_pokemon_characteristics():
+    pipeline = dlt.pipeline(
+        pipeline_name="thesis_pipeline",
+        destination="duckdb",
+        dataset_name="pokemons",
+    )
+
+    dataset = pipeline.dataset().stats_main__characteristics.df()
+
+    @dlt.resource(table_name="characteristics_main")
+    def characteristics_main(urls):
+        for url in urls:
+            print(url)
+            response = requests.get(url)
+            assert response.status_code == 200, "Invalid url: " + url
+            yield response.json()
+
+    load_info = pipeline.run(characteristics_main(pd.unique(dataset["url"])))
+    print(load_info)
+
+
 if __name__ == "__main__":
     #load_pokemon()
-    load_pokemon_abilities()
+    #load_pokemon_abilities()
+    #load_pokemon_stats()
+    load_pokemon_characteristics()
