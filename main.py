@@ -6,7 +6,7 @@ import duckdb
 
 # ------------------- APP CONFIG -------------------
 st.set_page_config(page_title="Beyond Chat", layout="wide")
-st.title("Home")
+#st.title("Home")
 
 # ------------------- SESSION STATE SETUP -------------------
 if 'current_bot' not in st.session_state:

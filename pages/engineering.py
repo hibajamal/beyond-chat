@@ -2,7 +2,7 @@ import streamlit as st
 
 # ------------------- APP CONFIG -------------------
 st.set_page_config(page_title="Beyond Chat - Engineering", layout="wide")
-st.title("Engineering")
+#st.title("Engineering")
 
 # ------------------- SESSION STATE SETUP -------------------
 st.session_state['current_bot'] = 'Engineering'
