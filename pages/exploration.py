@@ -60,12 +60,15 @@ with col_schema:
     if st.session_state['dataset_info']['loaded']:
         st.markdown(f"**Name:** {st.session_state['dataset_info']['name']}")
         print(helpers.get_dataset())
-        st.markdown(f"Saved dataset name: **{helpers.get_dataset()}**")
+        st.markdown(f"Saved dataset name: **{st.session_state['dataset_info']['dataset_name']}**")
         schema_df = st.session_state['dataset_info']['schema']
         schema = helpers.get_schema()
         for table in schema:
             with st.expander(f"➕ {table}"):
                 st.dataframe(pd.DataFrame(schema[table]), use_container_width=True, hide_index=True)
+                with st.popover(f"🔍 Preview: {table}"):
+                    preview = helpers.get_table_preview(table)
+                    st.dataframe(preview, use_container_width=True)
     else:
         st.info("No dataset loaded. Please return to the homepage to select one.")
 
