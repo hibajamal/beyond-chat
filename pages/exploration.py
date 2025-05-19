@@ -62,9 +62,10 @@ with col_schema:
         print(helpers.get_dataset())
         st.markdown(f"Saved dataset name: **{helpers.get_dataset()}**")
         schema_df = st.session_state['dataset_info']['schema']
-        st.markdown(f"**Number of Columns:** {len(schema_df)}")
-        if not schema_df.empty:
-            st.dataframe(schema_df, use_container_width=True, hide_index=True)
+        schema = helpers.get_schema()
+        for table in schema:
+            with st.expander(f"➕ {table}"):
+                st.dataframe(pd.DataFrame(schema[table]), use_container_width=True, hide_index=True)
     else:
         st.info("No dataset loaded. Please return to the homepage to select one.")
 
