@@ -6,6 +6,7 @@ import duckdb
 
 # ------------------- APP CONFIG -------------------
 st.set_page_config(page_title="Beyond Chat", layout="wide")
+#st.title("Home")
 
 # ------------------- SESSION STATE SETUP -------------------
 if 'current_bot' not in st.session_state:
@@ -66,7 +67,7 @@ if selected_dataset != "-- Select --":
 
     st.success(f"✅ Dataset '{selected_dataset}' selected. Redirecting to explore...")
     time.sleep(2)
-    st.switch_page("pages/Exploration.py")
+    st.switch_page("pages/exploration.py")
 else:
     st.info("⬆️ Select a dataset to begin.")
 
@@ -80,9 +81,9 @@ with st.sidebar:
     if selected_mode != st.session_state['current_bot']:
         st.session_state['current_bot'] = selected_mode
         if selected_mode == "Exploration":
-            st.switch_page("pages/Exploration.py")
+            st.switch_page("pages/exploration.py")
         elif selected_mode == "Engineering":
-            st.switch_page("pages/Engineering.py")
+            st.switch_page("pages/engineering.py")
     st.markdown("---")
     st.markdown("### Status")
     st.markdown(f"**Selected Dataset:** {st.session_state['dataset_info']['name'] if st.session_state['dataset_info']['loaded'] else 'None'}")
