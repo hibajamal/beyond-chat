@@ -5,6 +5,14 @@ import helpers
 
 # ------------------- APP CONFIG -------------------
 st.set_page_config(page_title="Beyond Chat - Explore", layout="wide")
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
 #st.title("Exploration")
 # ------------------- SESSION STATE SETUP -------------------
 st.session_state['current_bot'] = 'Exploration'
@@ -55,22 +63,32 @@ with col_chat:
 
 # ------------------- SCHEMA AREA -------------------
 with col_schema:
-    st.header("🗂 Dataset Overview")
-    if st.session_state['dataset_info']['loaded']:
-        with st.container(border=True):
-            with st.container(height=500):
-                print(helpers.get_dataset())
-                st.markdown(f"Dataset name: **{st.session_state['dataset_info']['dataset_name']}**")
-                schema_df = st.session_state['dataset_info']['schema']
-                schema = helpers.get_schema()
-                for table in schema:
-                    with st.expander(f"➕ {table}"):
-                        st.dataframe(pd.DataFrame(schema[table]), use_container_width=True, hide_index=True)
-                        with st.popover(f"🔍 Preview: {table}"):
-                            preview = helpers.get_table_preview(table)
-                            st.dataframe(preview, use_container_width=True)
-    else:
-        st.info("No dataset loaded. Please return to the homepage to select one.")
+    top, bottom = st.container(height=448), st.container()
+
+    with top:
+        st.header("🗂 Dataset Overview")
+        if st.session_state['dataset_info']['loaded']:
+            print(helpers.get_dataset())
+            st.markdown(f"Dataset name: **{st.session_state['dataset_info']['dataset_name']}**")
+            schema_df = st.session_state['dataset_info']['schema']
+            schema = helpers.get_schema()
+            for table in schema:
+                with st.expander(f"➕ {table}"):
+                    st.dataframe(pd.DataFrame(schema[table]), use_container_width=True, hide_index=True)
+                    with st.popover(f"🔍 Preview: {table}"):
+                        preview = helpers.get_table_preview(table)
+                        st.dataframe(preview, use_container_width=True)
+        else:
+            st.info("No dataset loaded. Please return to the homepage to select one.")
+
+    with bottom:
+        st.markdown("### 💡 Here are some things you can do:")
+        st.markdown("""
+                - 🔍 *Show me the latest records*
+                - 📊 *Summarize this table*
+                - 🏆 *What are the top categories by sales?*
+                """)
+
 
 # ------------------- SIDE BAR -------------------
 with st.sidebar:
