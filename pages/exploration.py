@@ -121,29 +121,10 @@ with col_chat:
                         if entry['chart']['type'] == 'altair':
                             spec = entry['chart']['spec']
                             st.vega_lite_chart(spec, use_container_width=True)
-                            st.session_state['messages'].append({"role": "user", "content": f'''
-                            Can you explain the previous question with these results in text:
-                            Results: {spec} 
-                            '''})
-                            print("context updated????")
-                            helpers.gpt_call()
-                            st.session_state['chat_history'].append({
-                                'user': '',
-                                'bot': st.session_state['messages'][-1]["content"]
-                            })
                 if 'dataframe' in entry:
                     with st.chat_message("assistant"):
                         df = pd.DataFrame(entry['dataframe'])
                         st.dataframe(df, use_container_width=True)
-                        st.session_state['messages'].append({"role": "user", "content": f'''
-                        Can you explain the previous question with these results in text:
-                        Results: {df} 
-                        '''})
-                        helpers.gpt_call()
-                        st.session_state['chat_history'].append({
-                            'user': '',
-                            'bot': st.session_state['messages'][-1]["content"]
-                        })
 
         user_input = st.chat_input("Type your message here...")
         if user_input:
@@ -176,6 +157,8 @@ with col_chat:
                     'user': '',
                     'bot': st.session_state['messages'][-1]["content"]
                 })
+            else:
+                st.session_state['messages'].pop()
             st.rerun()
 
 # ------------------- SCHEMA AREA -------------------

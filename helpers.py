@@ -121,7 +121,8 @@ def execute_script_and_render_result(script: str):
             st.session_state['chat_history'].append({
                 'user': '',
                 'bot': '',
-                'dataframe': result.to_dict(orient='records')  # serializable format
+                'dataframe': result.to_dict(orient='records'),  # serializable format
+                'needs_explanation': True
             })
         elif isinstance(result, (alt.Chart, alt.LayerChart, alt.ConcatChart, alt.HConcatChart, alt.VConcatChart)):
             if isinstance(result.data, pd.DataFrame):
@@ -133,10 +134,23 @@ def execute_script_and_render_result(script: str):
                 'chart': {
                     'type': 'altair',
                     'spec': spec
-                }
+                },
+                'needs_explanation': True
             })
         else:
             st.info("Code executed, but no visualizable `result` was found.")
+
+    last = st.session_state['chat_history'][-1]
+    if last.get('needs_explanation'):
+        result_context = last.get('chart', {}).get('spec') or last.get('dataframe')
+        explanation_prompt = f"Can you explain the result below in plain language:\n\n{result_context}"
+        st.session_state['messages'].append({"role": "user", "content": explanation_prompt})
+        gpt_call()
+        st.session_state['chat_history'].append({
+            'user': '',
+            'bot': st.session_state['messages'][-1]["content"]
+        })
+        last['needs_explanation'] = False  # Mark it handled
 
 
 def correct_script(script, gpt_model="gpt-3.5-turbo"):
