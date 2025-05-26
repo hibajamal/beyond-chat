@@ -110,39 +110,59 @@ with col_chat:
         with st.container(height=500):
             st.subheader("📜 Chat History")
             for entry in st.session_state['chat_history']:
-                with st.chat_message("user"):
-                    st.markdown(entry['user'])
-                with st.chat_message("assistant"):
-                    st.markdown(entry['bot'])
-
-            # Show chart if previously requested
-            if st.session_state.get('show_chart'):
-                df = pd.DataFrame({"Category": ["A", "B", "C"], "Count": [5, 10, 3]})
-                render_altair_chart(df, x="Category", y="Count", title="Example Bar Chart")
-                st.session_state['show_chart'] = False
+                if 'user' in entry and entry['user']:
+                    with st.chat_message("user"):
+                        st.markdown(entry['user'])
+                if 'bot' in entry and entry['bot']:
+                    with st.chat_message("assistant"):
+                        st.markdown(entry['bot'])
+                if 'chart' in entry:
+                    with st.chat_message("assistant"):
+                        if entry['chart']['type'] == 'altair':
+                            spec = entry['chart']['spec']
+                            st.vega_lite_chart(spec, use_container_width=True)
+                            st.session_state['messages'].append({"role": "user", "content": f'''
+                            Can you explain the previous question with these results in text:
+                            Results: {spec} 
+                            '''})
+                            print("context updated????")
+                            helpers.gpt_call()
+                            st.session_state['chat_history'].append({
+                                'user': '',
+                                'bot': st.session_state['messages'][-1]["content"]
+                            })
+                if 'dataframe' in entry:
+                    with st.chat_message("assistant"):
+                        df = pd.DataFrame(entry['dataframe'])
+                        st.dataframe(df, use_container_width=True)
+                        st.session_state['messages'].append({"role": "user", "content": f'''
+                        Can you explain the previous question with these results in text:
+                        Results: {df} 
+                        '''})
+                        helpers.gpt_call()
+                        st.session_state['chat_history'].append({
+                            'user': '',
+                            'bot': st.session_state['messages'][-1]["content"]
+                        })
 
         user_input = st.chat_input("Type your message here...")
         if user_input:
+            # Show Input
+            st.session_state['chat_history'].append({
+                'user': user_input,
+                'bot': ''
+            })
             # Update messages list
             st.session_state['messages'].append({"role": "user", "content": user_input})
             helpers.gpt_call()
+            is_script = False
 
             if "```python" in st.session_state['messages'][-1]["content"]:
+                is_script = True
                 script = st.session_state['messages'][-1]["content"].strip("```python").strip("```")
-                print(script)
                 helpers.execute_script_and_render_result(script)
-
-            # Example: trigger chart if query contains "chart" or "bar"
-            if "chart" in user_input.lower() or "bar" in user_input.lower():
-                st.session_state['show_chart'] = True
-                df = pd.DataFrame({"Category": ["A", "B", "C"], "Count": [5, 10, 3]})
-                render_altair_chart(df, x="Category", y="Count", title="Example Bar Chart")
-                assistant_reply = "Here's a bar chart of category counts."
             else:
-                # assistant_reply = f"You said: {user_input}"
-                assistant_reply = st.session_state['messages'][-1]["content"]
-
-            st.session_state['messages'].append({"role": "assistant", "content": assistant_reply})
+                st.session_state['messages'].append({"role": "assistant", "content": st.session_state['messages'][-1]["content"]})
 
             # Limit to last 10 exchanges plus system prompt
             MAX_HISTORY = 10
@@ -150,11 +170,12 @@ with col_chat:
             recent_messages = st.session_state['messages'][-2 * MAX_HISTORY:]
             st.session_state['messages'] = [system_prompt] + recent_messages
 
-            # Display
-            st.session_state['chat_history'].append({
-                'user': user_input,
-                'bot': assistant_reply
-            })
+            print(st.session_state['messages'])
+            if not is_script:
+                st.session_state['chat_history'].append({
+                    'user': '',
+                    'bot': st.session_state['messages'][-1]["content"]
+                })
             st.rerun()
 
 # ------------------- SCHEMA AREA -------------------

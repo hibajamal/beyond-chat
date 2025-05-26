@@ -78,9 +78,28 @@ def gpt_call(gpt_model="gpt-3.5-turbo"):
     st.session_state['messages'].append(response)
 
 
+def deduplicate_columns(df):
+    seen = {}
+    new_cols = []
+    for col in df.columns:
+        if col not in seen:
+            seen[col] = 1
+            new_cols.append(col)
+        else:
+            seen[col] += 1
+            new_cols.append(f"{col}_{seen[col]}")
+    df.columns = new_cols
+    return df
+
+
 def execute_script_and_render_result(script: str):
     print("correcting script...")
-    script = correct_script(script)
+    script = correct_script(script, gpt_model="gpt-4-turbo")
+    st.session_state['messages'].pop()
+    st.session_state['messages'].append({"role": "assistant", "content": script})
+
+    script = script.strip("```python").strip("```")
+
     # Step 1: Prepare isolated namespace
     namespace = {}
 
@@ -93,15 +112,29 @@ def execute_script_and_render_result(script: str):
 
     # Step 3: Check for `result` in the namespace
     result = namespace.get("result", None)
+    print(result)
 
     # Step 4: Render based on result type
     with st.chat_message("assistant"):
+        # Store into chat history for persistent rendering
         if isinstance(result, pd.DataFrame):
-            st.markdown("Here’s the resulting table:")
-            st.dataframe(result, use_container_width=True)
-        elif isinstance(result, alt.Chart):
-            st.markdown("Here’s the resulting chart:")
-            st.altair_chart(result, use_container_width=True)
+            st.session_state['chat_history'].append({
+                'user': '',
+                'bot': '',
+                'dataframe': result.to_dict(orient='records')  # serializable format
+            })
+        elif isinstance(result, (alt.Chart, alt.LayerChart, alt.ConcatChart, alt.HConcatChart, alt.VConcatChart)):
+            if isinstance(result.data, pd.DataFrame):
+                result.data = deduplicate_columns(result.data)
+            spec = result.to_dict()
+            st.session_state['chat_history'].append({
+                'user': '',
+                'bot': '',
+                'chart': {
+                    'type': 'altair',
+                    'spec': spec
+                }
+            })
         else:
             st.info("Code executed, but no visualizable `result` was found.")
 
@@ -112,6 +145,15 @@ def correct_script(script, gpt_model="gpt-3.5-turbo"):
     script: {script}
     
     rules:
+           - Respond **only with a code block** — no natural language outside it.
+           - Include helpful explanations **inside the code as comments**.
+           - Use `pandas` and `altair` for analysis and charts.
+           - Avoid trivial code like `print()` or placeholders.
+           - Always declare and initialize the pipeline object at the top using the dlt.pipeline(...) format. 
+                - The pipeline must be declared with a pipeline name, dataset, and destination, which are thesis_pipeline, {st.session_state['dataset_info']['dataset_name']}, and duckdb respectively.
+           - If the result is just a single row, please keep it as a dataframe and not a chart. 
+           - Access data from the relevant table(s) using .df() calls via pipeline.dataset().<table>.df().
+           - Perform any data exploration or analysis needed (filtering, aggregating, grouping, plotting, etc.).
            - Store the final result (whether it’s a DataFrame or a chart) in a variable called `result`.
            - If it's a chart (e.g. Altair), store the chart object in `result`.
            - If it's a table, make sure it's a clean Pandas DataFrame, stored in a variable called `result`.
@@ -126,3 +168,7 @@ def correct_script(script, gpt_model="gpt-3.5-turbo"):
 
     corrected_script = res.choices[0].message.content.strip()
     return corrected_script
+
+
+def result_explanation():
+    return 0
