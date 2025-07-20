@@ -40,7 +40,8 @@ if 'messages' not in st.session_state or not st.session_state['messages']:
         2. **Python script only**: When the question can be answered with data exploration using DataFrames, visualizations, or filtering logic. In this case:
            - Respond **only with a code block** — no natural language outside it.
            - Include helpful explanations **inside the code as comments**.
-           - Use `pandas` and `altair` for analysis and charts.
+           - Use `pandas` and `altair` for analysis and charts. 
+           - LIMIT ROWS TO 100 in visualization.
            - Avoid trivial code like `print()` or placeholders.
            - Always declare and initialize the pipeline object at the top using the dlt.pipeline(...) format.
            - Access data from the relevant table(s) using .df() calls via pipeline.dataset().<table>.df().
@@ -63,7 +64,7 @@ if 'messages' not in st.session_state or not st.session_state['messages']:
         pipeline = dlt.pipeline(
             pipeline_name="thesis_pipeline", # always use this param value
             destination="duckdb", # always use this param value
-            dataset_name={st.session_state['dataset_info']['dataset_name']} #always use this param value
+            dataset_name={st.session_state['dataset_info']['dataset_name']} #always use this param value,
         )
         ```
         
@@ -141,6 +142,7 @@ with col_chat:
             if "```python" in st.session_state['messages'][-1]["content"]:
                 is_script = True
                 script = st.session_state['messages'][-1]["content"].strip("```python").strip("```")
+                print("generated script:::::::::::::::::::::::::::::::::::\n", script)
                 helpers.execute_script_and_render_result(script)
             else:
                 st.session_state['messages'].append({"role": "assistant", "content": st.session_state['messages'][-1]["content"]})
@@ -151,7 +153,7 @@ with col_chat:
             recent_messages = st.session_state['messages'][-2 * MAX_HISTORY:]
             st.session_state['messages'] = [system_prompt] + recent_messages
 
-            print(st.session_state['messages'])
+            print(st.session_state['messages'][-1])
             if not is_script:
                 st.session_state['chat_history'].append({
                     'user': '',

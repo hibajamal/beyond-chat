@@ -66,7 +66,7 @@ def read_semantic_layer():
     return data
 
 
-def gpt_call(gpt_model="gpt-3.5-turbo"):
+def gpt_call(gpt_model="gpt-4o-mini"):
     res = client.chat.completions.create(
         model=gpt_model,
         messages=st.session_state['messages'],
