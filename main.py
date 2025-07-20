@@ -34,9 +34,7 @@ if 'last_query_result' not in st.session_state:
 # ------------------- APP HOMEPAGE UI -------------------
 st.title("🧠 Beyond Chat: A Multimodal Exploration Interface")
 st.markdown("""
-Welcome to the prototype interface for multimodal data exploration. This tool allows you to switch between two modes:
-- **Exploration**: Analyze datasets and ask questions
-- **Engineering**: Review pipelines, handle data issues, and build clean models
+Welcome to the prototype interface for multimodal data exploration. 
 
 Please begin by selecting one of the available datasets:
 """)
